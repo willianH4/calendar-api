@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config();
 
 // Crear el servidor express
 const app = express();
@@ -6,14 +7,14 @@ const app = express();
 // Public
 app.use( express.static('public') );
 
+// Parse body
+app.use( express.json() );
+
 // Routes
-// app.get('/', (req, res) => {
-//     res.json({
-//         ok: true
-//     })
-// });
+app.use('/api/auth', require('./routes/auth'));
+// TODO: CRUD: eventos
 
 // listening
-app.listen( 4000, () => {
-    console.log(`Server run ${4000}`)
+app.listen( process.env.PORT, () => {
+    console.log(`Server run ${process.env.PORT}`)
 })
