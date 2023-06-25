@@ -4,7 +4,7 @@ const createUser = (req, res = response) => {
 
     const { name, email, password } = req.body;
 
-    res.json({
+    res.status(201).json({
         ok: true,
         msg: 'register',
         name,
@@ -13,14 +13,19 @@ const createUser = (req, res = response) => {
     });
 }
 
-const loginUser = (req, res) => {
-    res.json({
+const loginUser = (req, res = response) => {
+
+    const { email, password } = req.body;
+
+    res.status(200).json({
         ok: true,
-        msg: 'login'
+        msg: 'login',
+        email,
+        password
     });
 }
 
-const renewToken = (req, res) => {
+const renewToken = (req, res = response) => {
     res.json({
         ok: true,
         msg: 'renew'
