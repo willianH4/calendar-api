@@ -1,6 +1,7 @@
 const { response } = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const { generateJWT } = require('../helpers/jwt');
 
 const createUser = async(req, res = response) => {
     const { email, password } = req.body;
@@ -21,30 +22,66 @@ const createUser = async(req, res = response) => {
         user.password = bcrypt.hashSync( password, salt ); // password
         await user.save();
 
+        // generate JWT
+        const token = await generateJWT(user.id, user.userName);
+
         res.status(201).json({
             ok: true,
             uid: user.id,
-            userName: user.userName
+            userName: user.userName,
+            token
         });
     } catch (error) {
         console.log(error);
         res.status(500).json({
             ok: false,
             msg: 'Ocurrio un error intentalo mas tarde'
-        })
+        });
     }
 }
 
-const loginUser = (req, res = response) => {
+const loginUser = async(req, res = response) => {
 
     const { email, password } = req.body;
 
-    res.status(200).json({
-        ok: true,
-        msg: 'login',
-        email,
-        password
-    });
+    try {
+        
+        const user = await User.findOne({
+            email
+        });
+        if ( !user ) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'El usuario no existe'
+            });
+        }
+
+        // match passwords
+        const validPassword = bcrypt.compareSync(password, user.password);
+        if ( !validPassword ) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Password incorrecto'
+            });
+        }
+
+        // generate JWT
+        const token = await generateJWT(user.id, user.userName);
+
+        res.json({
+            ok: true,
+            uid: user.id,
+            userName: user.userName,
+            token
+        })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Ocurrio un error intentalo mas tarde'
+        });
+    }
 }
 
 const renewToken = (req, res = response) => {
