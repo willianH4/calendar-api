@@ -1,17 +1,35 @@
-const { response } = require('express')
+const { response } = require('express');
+const Event = require('../models/Event');
 
-const getEvents = (req, res) => {
+const getEvents = async(req, res) => {
+
+    const events = await Event.find()
+                                .populate('user', 'userName');
+
     return res.json({
         ok: true,
-        msg: 'getEvents'
+        events
     });
 }
 
-const createEvent = (req, res = response) => {
-    return res.json({
-        ok: true,
-        msg: 'createEvent'
-    });
+const createEvent = async(req, res = response) => {
+    
+    const event = new Event( req.body );
+
+    try {
+       event.user = req.uid;
+       const eventSave = await event.save();
+        res.json({
+            ok: true,
+            evento: eventSave
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Ocurrio un error intentalo mas tarde'
+        });
+    }
 }
 
 const updateEvent = (req, res = response) => {
