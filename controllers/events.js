@@ -32,18 +32,83 @@ const createEvent = async(req, res = response) => {
     }
 }
 
-const updateEvent = (req, res = response) => {
-    return res.json({
-        ok: true,
-        msg: 'updateEvent'
-    });
+const updateEvent = async(req, res = response) => {
+
+    const eventId = req.params.id;
+    const uid = req.uid;
+
+    try {
+        const event = await Event.findById( eventId );
+
+        if( !event ) {
+           return res.status(404).json({
+                ok: false,
+                msg: `No existe el evento: ${eventId}`
+            });
+        };
+
+        if( event.user.toString() !== uid ) {
+            return res.status(401).json({
+                ok: false,
+                msg: 'No autorizado'
+            });
+        };
+
+        const newEvent = {
+            ...req.body,
+            user: uid
+        }
+
+        const eventUpdate = await Event.findByIdAndUpdate( eventId, newEvent, { new: true } );
+
+        return res.json({
+            ok: true,
+            event: eventUpdate
+        });
+
+    } catch (error) {
+       return res.status(500).json({
+            ok: false,
+            msg: 'Intentalo mas tarde'
+        })
+    }
+
 }
 
-const deleteEvent = (req, res = response) => {
-    return res.json({
-        ok: true,
-        msg: 'deleteEvent'
-    });
+const deleteEvent = async(req, res = response) => {
+    const eventId = req.params.id;
+    const uid = req.uid;
+
+    try {
+        const event = await Event.findById( eventId );
+
+        if( !event ) {
+           return res.status(404).json({
+                ok: false,
+                msg: `No existe el evento: ${eventId}`
+            });
+        };
+
+        if( event.user.toString() !== uid ) {
+            return res.status(401).json({
+                ok: false,
+                msg: 'No autorizado'
+            });
+        };
+
+        await Event.findByIdAndDelete( eventId );
+
+       return res.json({
+            ok: true,
+            msg: `Se elimino el evento ${eventId}`
+        });
+
+    } catch (error) {
+       return res.status(500).json({
+            ok: false,
+            msg: 'Intentalo mas tarde'
+        })
+    }
 }
 
 module.exports = {
